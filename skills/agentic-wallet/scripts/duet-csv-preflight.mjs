@@ -11,4 +11,11 @@ function parse(argv){const o={requiredFields:[],execute:false};for(let i=0;i<arg
 function validate(o){if(!o.csvFile)throw new Error('Provide --csv-file');const csv=readFileSync(o.csvFile,'utf8');if(!csv)throw new Error('csv must not be empty');if(Buffer.byteLength(csv,'utf8')>MAX_CSV_BYTES)throw new Error('csv exceeds limit');const body={csv};if(o.requiredFields.length)body.requiredFields=o.requiredFields;if(o.keyField)body.keyField=o.keyField;if(o.delimiter)body.delimiter=o.delimiter;return body;}
 const o=parse(process.argv.slice(2));const body=validate(o);const args=[`awal@${AWAL_VERSION}`,'x402','pay',ENDPOINT,'-X','POST','-d',JSON.stringify(body),'--max-amount',MAX_USDC_ATOMIC,'--json'];
 if(!o.execute){console.log(JSON.stringify({mode:'dry-run',networkRequestMade:false,paymentMade:false,endpoint:ENDPOINT,method:'POST',maxUsdcAtomic:MAX_USDC_ATOMIC,request:body,command:'npx',argv:args},null,2));process.exit(0);}
-const r=spawnSync('npx',args,{encoding:'utf8',shell:false,stdio:['ignore','pipe','pipe']});if(r.error)throw r.error;if(r.status!==0){if(r.stderr)process.stderr.write(r.stderr);process.exit(r.status??1);}process.stdout.write(r.stdout);
+const r=spawnSync('npx',args,{encoding:'utf8',shell:false,stdio:['ignore','pipe','pipe'],maxBuffer:1024*1024});
+if(r.error)throw r.error;
+if(r.status!==0){if(r.stderr)process.stderr.write(r.stderr);process.exit(r.status??1);}
+let result;
+try{result=JSON.parse(r.stdout);}catch{throw new Error('Wallet command did not return valid JSON; block the import');}
+const summary=result?.summary;
+if(!summary||!Number.isInteger(summary.errorCount)||!Number.isInteger(summary.structuralErrors)||summary.errorCount<0||summary.structuralErrors<0){throw new Error('Wallet command did not return a valid preflight summary; block the import');}
+process.stdout.write(JSON.stringify(result)+'\n');
