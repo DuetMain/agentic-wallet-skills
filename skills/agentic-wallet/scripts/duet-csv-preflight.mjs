@@ -17,5 +17,7 @@ if(r.status!==0){if(r.stderr)process.stderr.write(r.stderr);process.exit(r.statu
 let result;
 try{result=JSON.parse(r.stdout);}catch{throw new Error('Wallet command did not return valid JSON; block the import');}
 const summary=result?.summary;
-if(!summary||!Number.isInteger(summary.errorCount)||!Number.isInteger(summary.structuralErrors)||summary.errorCount<0||summary.structuralErrors<0){throw new Error('Wallet command did not return a valid preflight summary; block the import');}
+const hasStructuralErrors=summary&&Object.hasOwn(summary,'structuralErrors');
+if(!summary||!Number.isSafeInteger(summary.errorCount)||summary.errorCount<0||(hasStructuralErrors&&(!Number.isSafeInteger(summary.structuralErrors)||summary.structuralErrors<0))){throw new Error('Wallet command did not return a valid preflight summary; block the import');}
 process.stdout.write(JSON.stringify(result)+'\n');
+
