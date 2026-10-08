@@ -12,7 +12,7 @@ The service is deterministic, stateless, and does not retain source CSV. The pai
 
 ## Fixed service contract
 
-- URL: `https://duet-csv-preflight.projectlantern-review.workers.dev/v1/preflight`
+- URL: `https://duet-csv-preflight.timbeaux-sora.chatgpt.site/v1/preflight`
 - Method: `POST`
 - Body: JSON with `csv` plus optional `requiredFields`, `keyField`, and `delimiter`
 - Max CSV size: 262,144 UTF-8 bytes
