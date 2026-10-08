@@ -15,7 +15,7 @@ The service is deterministic, stateless, and does not retain source CSV. The pai
 - URL: `https://duet-csv-preflight.timbeaux-sora.chatgpt.site/v1/preflight`
 - Method: `POST`
 - Body: JSON with `csv` plus optional `requiredFields`, `keyField`, and `delimiter`
-- Max CSV size: 262,144 UTF-8 bytes
+- Max CSV and serialized JSON request size: 131,072 UTF-8 bytes
 - Price cap: `5000` USDC atomic units (0.005 USDC)
 
 ## Safe call
@@ -34,7 +34,7 @@ Review the prepared request. When the wallet owner has authorized the 0.005 USDC
 
 ## Decision rule
 
-- Block the downstream import when `summary.errorCount > 0` or `summary.structuralErrors > 0`.
+- Block the downstream import when `summary.errorCount > 0`; when `summary.structuralErrors` is present, also block when it is greater than zero.
 - Surface warnings and cleanup candidates; do not silently mutate source data.
 - Treat a transport, authentication, balance, payment, or parsing failure as unknown and block the import until resolved.
 - Preserve the result as evidence, but do not claim the call succeeded unless the command returned valid service JSON.
